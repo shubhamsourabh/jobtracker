@@ -3,6 +3,7 @@ import { z } from "zod";
 import bcrypt from "bcryptjs";
 import { User } from "../models/User.js";
 import jwt from "jsonwebtoken";
+import auth from "../middleware/auth.js";
 
 const router = Router();
 
@@ -44,5 +45,7 @@ router.post("/login", async (req, res) => {
     const token = jwt.sign({ id: user._id }, secret, { expiresIn: "7d" });
     res.json({ token, user: { id: user._id, name: user.name, email: user.email } })
 })
+
+router.get("/me", auth, (req, res) => res.json({ user: req.user }));
 
 export default router;
