@@ -90,4 +90,24 @@ router.put("/:id", async (req, res) => {
         res.status(500).json({ message: "Server error" });
     }
 })
+
+router.delete("/:id", async (req, res) => {
+    if (!mongoose.isValidObjectId(req.params.id)) {
+        return res.status(400).json({ message: "Invalid id" });
+    }
+    try {
+        const application = await Application.findOneAndDelete({
+            _id: req.params.id,
+            owner: req.user._id,
+        });
+        if (!application) {
+            return res.status(404).json({ message: "Application not found" });
+        }
+        res.json({ message: "Deleted" });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: "Server error" });
+    }
+})
+
 export default router;
