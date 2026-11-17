@@ -34,4 +34,14 @@ router.post("/", async (req, res) => {
         res.status(500).json({ message: "Server error" });
     }
 })
+
+router.get("/", async (req, res) => {
+    try {
+        const applications = await Application.find({ owner: req.user._id }).sort({ dateApplied: -1 });
+        res.json(applications);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: "Server error" });
+    }
+})
 export default router;
