@@ -18,6 +18,8 @@ const createSchema = z.object({
     followUpDate: z.coerce.date().optional(),
 });
 
+const updateSchema = createSchema.partial();
+
 router.post("/", async (req, res) => {
     const parsed = createSchema.safeParse(req.body);
     if (!parsed.success) {
@@ -55,6 +57,30 @@ router.get("/:id", async (req, res) => {
             _id: req.params.id,
             owner: req.user._id,
         });
+        if (!application) {
+            return res.status(404).json({ message: "Application not found" });
+        }
+        res.json(application);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: "Server error" });
+    }
+})
+
+router.put("/:id", async (req, res) => {
+    if (!mongoose.isValidObjectId(req.params.id)) {
+        return res.status(400).json({ message: "Invalid id" });
+    }
+    const parsed = updateSchema.safeParse(req.body);
+    if (!parsed.success) {
+        const issue = parsed.error.issues[0];
+        return res.status(400).json({ message: `${issue.path.join(".")}: ${issue.message}` })
+    }
+    try {
+        const application = await Application.findOneAndUpdate({
+            _id: req.params.id,
+            owner: req.user._id,
+        }, parsed.data, { returnDocument: "after", runValidators: true })
         if (!application) {
             return res.status(404).json({ message: "Application not found" });
         }
