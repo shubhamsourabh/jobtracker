@@ -3,6 +3,7 @@ import auth from "../middleware/auth.js";
 import { z } from "zod";
 import { APPLICATION_STATUS } from "../types/application.js";
 import { Application } from "../models/Application.js";
+import mongoose from "mongoose";
 
 
 const router = Router();
@@ -39,6 +40,25 @@ router.get("/", async (req, res) => {
     try {
         const applications = await Application.find({ owner: req.user._id }).sort({ dateApplied: -1 });
         res.json(applications);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: "Server error" });
+    }
+})
+
+router.get("/:id", async (req, res) => {
+    if (!mongoose.isValidObjectId(req.params.id)) {
+        return res.status(400).json({ message: "Invalid id" });
+    }
+    try {
+        const application = await Application.findOne({
+            _id: req.params.id,
+            owner: req.user._id,
+        });
+        if (!application) {
+            return res.status(404).json({ message: "Application not found" });
+        }
+        res.json(application);
     } catch (err) {
         console.error(err);
         res.status(500).json({ message: "Server error" });
