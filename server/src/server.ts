@@ -2,6 +2,7 @@ import "dotenv/config";
 import express from "express";
 import { connectDB } from "./config/db.js";
 import authRouter from "./routes/auth.js";
+import applicationRouter from "./routes/application.js"
 
 const PORT = process.env.PORT || 5000;
 
@@ -10,6 +11,7 @@ app.use(express.json());
 
 app.get("/api/health", (_req, res) => res.json({ status: "ok" }));
 app.use("/api/auth", authRouter);
+app.use("/api/applications", applicationRouter);
 async function start() {
   await connectDB();
   app.listen(PORT, () => {
