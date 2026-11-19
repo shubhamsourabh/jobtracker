@@ -2,16 +2,26 @@ import "dotenv/config";
 import express from "express";
 import { connectDB } from "./config/db.js";
 import authRouter from "./routes/auth.js";
-import applicationRouter from "./routes/application.js"
+import applicationRouter from "./routes/application.js";
+import cookieParser from "cookie-parser";
 
 const PORT = process.env.PORT || 5000;
 
 const app = express();
 app.use(express.json());
+app.use(cookieParser())
 
 app.get("/api/health", (_req, res) => res.json({ status: "ok" }));
+
+app.get("/slow",async (req, res) => {
+  const end = Date.now() + 10000;
+  await new Promise((resolve) => setTimeout(resolve, 10000))      // blocks everything for 10 seconds
+  res.send("done");
+});
+
 app.use("/api/auth", authRouter);
 app.use("/api/applications", applicationRouter);
+
 async function start() {
   await connectDB();
   app.listen(PORT, () => {
