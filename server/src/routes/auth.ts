@@ -62,20 +62,28 @@ router.post("/refresh", async (req, res) => {
     try {
         const payload: unknown = jwt.verify(refreshToken, refreshSecret);
         if (!isTokenPayload(payload)) {
-           return res.status(401).json({ message: "Invalid token" });
-            
+            return res.status(401).json({ message: "Invalid token" });
+
         }
         const user = await User.findById(payload.id);
         if (!user) {
-           return res.status(401).json({ message: "User no longer exists" });  
+            return res.status(401).json({ message: "User no longer exists" });
         }
         const token = jwt.sign({ id: user._id }, secret, { expiresIn: "15m" });
-        res.json({token})
+        res.json({ token })
     } catch (err) {
         res.status(401).json({ message: "Invalid or expired token" });
     }
 })
 
+router.post("/logout", (req, res) => {
+    res.clearCookie("refreshToken", {
+        httpOnly: true,
+        sameSite: "strict",
+        secure: process.env.NODE_ENV === "production"
+    })
+    return res.json({message:"Logged out"})
+})
 router.get("/me", auth, (req, res) => res.json({ user: req.user }));
 
 export default router;
