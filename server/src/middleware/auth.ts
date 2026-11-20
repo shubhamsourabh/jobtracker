@@ -7,7 +7,6 @@ interface TokenPayload {
     id: string;
 }
 
-
 export function isTokenPayload(value: unknown): value is TokenPayload {
     return (
         typeof value === "object" &&

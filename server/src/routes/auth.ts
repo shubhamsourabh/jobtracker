@@ -4,6 +4,7 @@ import bcrypt from "bcryptjs";
 import { User } from "../models/User.js";
 import jwt from "jsonwebtoken";
 import auth, { isTokenPayload } from "../middleware/auth.js";
+import { authLimiter } from "../middleware/rateLimit.js";
 
 const router = Router();
 
@@ -25,7 +26,7 @@ const loginSchema = z.object({
     password: z.string().min(1, "Password must be at least 8 characters"),
 })
 
-router.post("/register", async (req, res) => {
+router.post("/register",authLimiter, async (req, res) => {
     const result = registerSchema.safeParse(req.body);
     if (!result.success) return res.status(400).json({ message: result.error.issues[0].message })
     const { name, email, password } = result.data;
@@ -36,7 +37,7 @@ router.post("/register", async (req, res) => {
     res.status(201).json({ id: user._id, name: user.name, email: user.email });
 });
 
-router.post("/login", async (req, res) => {
+router.post("/login",authLimiter, async (req, res) => {
     const result = loginSchema.safeParse(req.body);
     if (!result.success) return res.status(400).json({ message: result.error.issues[0].message })
     const { email, password } = result.data;
@@ -63,7 +64,6 @@ router.post("/refresh", async (req, res) => {
         const payload: unknown = jwt.verify(refreshToken, refreshSecret);
         if (!isTokenPayload(payload)) {
             return res.status(401).json({ message: "Invalid token" });
-
         }
         const user = await User.findById(payload.id);
         if (!user) {
