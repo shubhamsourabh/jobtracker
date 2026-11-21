@@ -6,6 +6,7 @@ import { Application } from "../models/Application.js";
 import mongoose from "mongoose";
 import type { QueryFilter } from "mongoose";
 import { IApplication } from "../types/application.js";
+import { extractJob } from "../services/extractJob.js";
 
 
 const router = Router();
@@ -27,6 +28,15 @@ const querySchema = z.object({
     status: z.enum(APPLICATION_STATUS).optional(),
 });
 
+const extractSchema = z.object({
+  description: z.string().min(20).max(8000),
+});
+
+router.post("/extract", async (req, res) => {
+  const { description } = extractSchema.parse(req.body);
+  const job = await extractJob(description);
+  res.json(job);
+});
 
 router.post("/", async (req, res) => {
     const parsed = createSchema.safeParse(req.body);
