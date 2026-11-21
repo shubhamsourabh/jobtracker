@@ -29,13 +29,22 @@ const querySchema = z.object({
 });
 
 const extractSchema = z.object({
-  description: z.string().min(20).max(8000),
+    description: z.string().min(20).max(8000),
 });
 
 router.post("/extract", async (req, res) => {
-  const { description } = extractSchema.parse(req.body);
-  const job = await extractJob(description);
-  res.json(job);
+    const { description } = extractSchema.parse(req.body); // bad input -> 400, as before
+    const start = Date.now();
+    try {
+        const job = await extractJob(description);
+        console.log(`extract ok in ${Date.now() - start}ms`);
+        res.json(job);
+    } catch (err) {
+        console.error(`extract failed in ${Date.now() - start}ms`, err);
+        res.status(502).json({
+            error: "Could not extract details. Please fill the form manually.",
+        });
+    }
 });
 
 router.post("/", async (req, res) => {

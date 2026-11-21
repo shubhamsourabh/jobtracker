@@ -25,7 +25,20 @@ export async function extractJobDetails(description: string): Promise<string> {
 }
 
 export type ExtractedJob = z.infer<typeof jobSchema>;
+
 export async function extractJob(description: string): Promise<ExtractedJob> {
-    const text = await extractJobDetails(description);
-    return jobSchema.parse(JSON.parse(text));
+  const MAX_TRIES = 2;
+  let lastError: unknown;
+
+  for (let attempt = 1; attempt <= MAX_TRIES; attempt++) {
+    try {
+      const text = await extractJobDetails(description);
+      return jobSchema.parse(JSON.parse(text)); // success: return and stop
+    } catch (err) {
+      lastError = err;
+      console.warn(`extract attempt ${attempt} failed`);
+    }
+  }
+
+  throw lastError; // both tries failed: the route's catch sends the 502
 }
